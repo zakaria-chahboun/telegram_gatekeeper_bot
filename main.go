@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -71,7 +70,6 @@ func main() {
 
 	// Start the bot
 	fmt.Println("Telegram Bot, Start listening ...")
-	serveDummyHttp()
 	bot.Start()
 }
 
@@ -235,21 +233,5 @@ func welcomeUserToGroup(bot *tb.Bot, chat *tb.Chat, user *tb.User) {
 	_, err := bot.Send(chat, welcomeMessage, &tb.SendOptions{ParseMode: tb.ModeMarkdownV2, DisableWebPagePreview: true})
 	if err != nil {
 		log.Println("Error sending welcoming markdown: ", err)
-	}
-}
-
-// Just for render.com to give me free web access
-func serveDummyHttp() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Return a welcome message
-		message := "I'm Gatekeeper Bot. Visit: https://t.me/gophergatebot"
-		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintln(w, message)
-	})
-
-	// Start the HTTP server on port 8080
-	fmt.Println("dummy port 8080...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Println("Failed to start server: %v", err)
 	}
 }
