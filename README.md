@@ -1,12 +1,11 @@
 # Telegram Gatekeeper Bot
 
-This is a Telegram bot built using Go, designed to serve as a gatekeeper for group chats. The bot ensures that only valid users can join by requiring them to choose the correct option and solve a math problem within a limited time.
+This is a Telegram bot built using Go, designed to serve as a gatekeeper for group chats. The bot ensures that only valid users can join by requiring them to choose the correct option or solve a math problem within a limited time.
 
 ![Bot Icon](assets/gatekeeper_bot_icon.jpg)
 
 ## Features
-* Validates new users with a multiple-choice question.
-* Includes a timed math problem to filter out unwanted or spam users.
+* Timed math problem to filter out unwanted or spam users.
 * Supports Arabic language messages.
 * Uses environment variables for configuration.
 
