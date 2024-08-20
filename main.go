@@ -78,6 +78,23 @@ func handleUserJoin(bot *tb.Bot, c tb.Context) {
 	chat := c.Chat()
 	user := c.Sender()
 
+	// Restrict the user by default
+	err := bot.Restrict(chat, &tb.ChatMember{
+		User: user,
+		Rights: tb.Rights{
+			CanSendMessages: false,
+			CanSendMedia:    false,
+			CanSendPolls:    false,
+			CanPostMessages: false,
+			CanSendOther:    false,
+			CanAddPreviews:  false,
+		},
+	})
+	if err != nil {
+		log.Println("Error restricting user:", err)
+		return
+	}
+
 	// Create the inline button for verification
 	markup := bot.NewMarkup()
 	btn := markup.URL("ابدأ التحقق", "https://t.me/"+bot.Me.Username+"?start="+chat.Username)
@@ -131,11 +148,26 @@ func handleStartCommand(bot *tb.Bot, c tb.Context, groupUsername string) {
 	// start the quiz
 	if askMathProblem(bot, user) {
 		bot.Send(user, "إجابة صحيحة! يمكنك الآن الانضمام إلى المجموعة.")
-		bot.ApproveJoinRequest(groupChat, user)
+		// Remove restrictions
+		err = bot.Promote(groupChat, &tb.ChatMember{
+			User: user,
+			Rights: tb.Rights{
+				CanSendMessages: true,
+				CanSendMedia:    true,
+				CanAddPreviews:  false,
+			},
+		})
+		if err != nil {
+			log.Println("Error removing restrictions:", err)
+		}
 		welcomeUserToGroup(bot, groupChat, user)
 	} else {
 		bot.Send(user, "إجابة غير صحيحة! سيتم رفض طلبك للانضمام.")
-		bot.DeclineJoinRequest(groupChat, user)
+		// Kick the user without banning
+		err = bot.Unban(groupChat, user) // The third parameter defaults to false
+		if err != nil {
+			log.Println("Error kicking user:", err)
+		}
 	}
 }
 
