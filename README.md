@@ -9,6 +9,25 @@ This is a Telegram bot built using Go, designed to serve as a gatekeeper for gro
 * Supports Arabic language messages.
 * Uses environment variables for configuration.
 
+## Flow
+
+This is the flow of verification
+```mermaid
+graph TD
+    A[New Member Joins Group] --> B[Restricted from Sending Messages]
+    B --> C[Receives Button]
+    C --> D[Button Clicked]
+    D --> E[Redirected to BOT Chat]
+    E --> F[Start Verification - Simple Math Operation]
+    F --> G{Correct Answer?}
+    G -->|Yes| H[Granted Chat Privileges]
+    H --> I[BOT Sends Welcome Message to Group]
+    G -->|No| J[Removed from Group]
+    F --> K{Timeout After 15 Seconds}
+    K -->|Timeout| J[Removed from Group]
+    C --> L[Message Deleted After 20 Seconds]
+```
+
 ## Getting Started
 
 Prerequisites
