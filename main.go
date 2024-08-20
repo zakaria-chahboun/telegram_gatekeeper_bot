@@ -12,6 +12,10 @@ import (
 	tb "gopkg.in/telebot.v3"
 )
 
+// Timeout in seconds
+const OPTION_TIMEOUT = 120
+const MATH_TIMEOUT = 15
+
 func main() {
 	// Load environment variables from .env file
 	err := godotenv.Load(".env")
@@ -36,9 +40,9 @@ func main() {
 		return
 	}
 
-	// Handle new users joining the group
-	bot.Handle(tb.OnUserJoined, func(c tb.Context) error {
-		handleUserJoined(bot, c)
+	// Handle chat join requests
+	bot.Handle(tb.OnChatJoinRequest, func(c tb.Context) error {
+		handleChatJoinRequest(bot, c)
 		return nil
 	})
 
@@ -54,13 +58,13 @@ func main() {
 	bot.Start()
 }
 
-// handleUserJoined handles the event when a user joins the group.
-func handleUserJoined(bot *tb.Bot, c tb.Context) {
+// handleChatJoinRequest handles the event when a user requests to join the group.
+func handleChatJoinRequest(bot *tb.Bot, c tb.Context) {
 	user := c.Sender()
 	chat := c.Chat()
 
-	// Inform the group about the new user
-	groupNotification := fmt.Sprintf("مرحباً %s أنت على وشك الإنضمام إلينا. يرجى التحقق من رسائلك الخاصة وإكمال عملية التحقق خلال 120 ثانية.", user.FirstName)
+	// Inform the user to check their private messages for validation in the group
+	groupNotification := fmt.Sprintf("مرحبًا %s أنت على وشك الإنضمام إلينا. يرجى التحقق من رسائلك الخاصة وإكمال عملية التحقق خلال %v ثانية.", user.FirstName, OPTION_TIMEOUT)
 	bot.Send(chat, groupNotification)
 
 	// Send private message to the user
@@ -86,14 +90,15 @@ func handleUserJoined(bot *tb.Bot, c tb.Context) {
 		})
 	}()
 
-	// Wait for the user's answer or timeout after 20 seconds
+	// Wait for the user's answer or timeout after 120 seconds
 	var chosenOption string
 	select {
 	case chosenOption = <-answerChan:
 		if chosenOption == "1" || chosenOption == "2" {
 			// Proceed to math problem if a valid option is chosen
 			if askMathProblem(bot, user) {
-				// If math problem solved correctly, welcome the user to the group
+				// Approve the join request if both checks are passed
+				bot.ApproveJoinRequest(chat, user)
 				welcomeUserToGroup(bot, chat, user)
 			} else {
 				bot.Send(user, "إجابة غير صحيحة! سيتم رفض طلبك للانضمام.")
@@ -103,7 +108,7 @@ func handleUserJoined(bot *tb.Bot, c tb.Context) {
 			bot.Send(user, "تم اختيار إجابة غير صحيحة! سيتم رفض طلبك للانضمام.")
 			bot.DeclineJoinRequest(chat, user)
 		}
-	case <-time.After(120 * time.Second):
+	case <-time.After(OPTION_TIMEOUT * time.Second):
 		bot.Send(user, "لم تقم بتحديد أي خيار! سيتم رفض طلبك للانضمام.")
 		bot.DeclineJoinRequest(chat, user)
 	}
@@ -117,7 +122,7 @@ func askMathProblem(bot *tb.Bot, user *tb.User) bool {
 	correctAnswer := num1 + num2
 
 	// Send the math problem to the user in Arabic
-	problem := fmt.Sprintf("يرجى حل هذه المسألة خلال 15 ثانية: %d + %d = ?", num1, num2)
+	problem := fmt.Sprintf("يرجى حل هذه المسألة خلال %v ثانية: %d + %d = ?", MATH_TIMEOUT, num1, num2)
 	bot.Send(user, problem)
 
 	// Create a channel to receive the user's math answer
@@ -131,7 +136,7 @@ func askMathProblem(bot *tb.Bot, user *tb.User) bool {
 		})
 	}()
 
-	// Wait for the user's math answer or timeout after 6 seconds
+	// Wait for the user's math answer or timeout after 15 seconds
 	select {
 	case mathAnswer := <-mathAnswerChan:
 		if userMathAnswer, err := strconv.Atoi(mathAnswer); err == nil && userMathAnswer == correctAnswer {
@@ -141,7 +146,7 @@ func askMathProblem(bot *tb.Bot, user *tb.User) bool {
 			bot.Send(user, "إجابة غير صحيحة! سيتم رفض طلبك للانضمام.")
 			return false
 		}
-	case <-time.After(15 * time.Second):
+	case <-time.After(MATH_TIMEOUT * time.Second):
 		bot.Send(user, "انتهى الوقت! سيتم رفض طلبك للانضمام.")
 		return false
 	}
