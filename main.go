@@ -123,7 +123,8 @@ func handleStartCommand(bot *tb.Bot, c tb.Context, groupUsername string) {
 	}
 
 	// Start the verification process
-	bot.Send(user, fmt.Sprintf("جار التحقق من دخولك إلى مجموعة:\n\"%s\" %s", groupChat.Title, groupUsername))
+	verificationMessage := fmt.Sprintf("جار التحقق من دخولك إلى مجموعة 🔍: [%s](https://t.me/%s)", groupChat.Title, groupChat.Username)
+	bot.Send(user, verificationMessage, &tb.SendOptions{ParseMode: tb.ModeMarkdownV2, DisableWebPagePreview: true})
 	bot.Send(user, "يرجى حل المسألة التالية خلال 15 ثانية.")
 	// give user O2
 	time.Sleep(1 * time.Second)
@@ -196,6 +197,9 @@ func askMathProblem(bot *tb.Bot, user *tb.User) bool {
 
 // welcomeUserToGroup sends a welcome message to the group.
 func welcomeUserToGroup(bot *tb.Bot, chat *tb.Chat, user *tb.User) {
-	welcomeMessage := fmt.Sprintf("سادتي وسيداتي رحبوا معنا بالوافد الجديد %s! لقد تم قبوله معنا 🤠🎉", user.FirstName)
-	bot.Send(chat, welcomeMessage)
+	welcomeMessage := fmt.Sprintf("سادتي وسيداتي رحبوا معنا بالوافد الجديد [%s](https://t.me/%s) لقد تم قبوله معنا 🤠🍉🎉", user.FirstName+user.LastName, user.Username)
+	_, err := bot.Send(chat, welcomeMessage, &tb.SendOptions{ParseMode: tb.ModeMarkdownV2, DisableWebPagePreview: true})
+	if err != nil {
+		log.Println("Error sending welcoming markdown: ", err)
+	}
 }
