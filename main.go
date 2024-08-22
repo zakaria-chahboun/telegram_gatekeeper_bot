@@ -151,7 +151,7 @@ func handleStartCommand(bot *tb.Bot, c tb.Context, groupUsername string) {
 		markup := bot.NewMarkup()
 		btn := markup.URL("الرجوع للمجموعة", "https://t.me/"+groupChat.Username)
 		markup.Inline(markup.Row(btn))
-		bot.Send(user, "إجابة صحيحة! يمكنك الآن الانضمام 🎉", btn)
+		bot.Send(user, "إجابة صحيحة! يمكنك الآن الانضمام 🎉", markup)
 
 		// Remove restrictions
 		err = bot.Promote(groupChat, &tb.ChatMember{
