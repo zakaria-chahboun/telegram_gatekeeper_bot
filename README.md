@@ -37,20 +37,20 @@ Prerequisites
 
 ## Installation
 
-* 1. Clone the repository:
+1. Clone the repository:
 
 ```console
 git clone https://github.com/zakaria-chahboun/telegram_gatekeeper_bot.git
 cd telegram_gatekeeper_bot
 ```
 
-* 2. Install dependencies:
+2. Install dependencies:
 
 ```console
 go mod tidy
 ```
 
-* 3. Set up environment variables:
+3. Set up environment variables:
 
 Create a `.env` file in the root directory of the project and add your environment variables:
 
@@ -58,7 +58,7 @@ Create a `.env` file in the root directory of the project and add your environme
 BOT_TOKEN=your-telegram-bot-token
 ```
 
-* 4. Run the bot:
+4. Run the bot:
 
 ```console
 go run main.go
