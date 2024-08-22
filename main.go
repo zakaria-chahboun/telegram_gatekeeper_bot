@@ -127,7 +127,7 @@ func handleStartCommand(bot *tb.Bot, c tb.Context, groupUsername string) {
 
 	groupChat, err := bot.ChatByUsername(groupUsername)
 	if err != nil {
-		bot.Send(user, fmt.Sprintf("Group %s is not on my list.", groupUsername))
+		bot.Send(user, fmt.Sprintf("عذرا، هذه المجموعة %s ليست ضمن قائمتي.", groupUsername))
 		return
 	}
 
@@ -135,19 +135,24 @@ func handleStartCommand(bot *tb.Bot, c tb.Context, groupUsername string) {
 	member, err := bot.ChatMemberOf(groupChat, bot.Me)
 	if err != nil || !member.CanRestrictMembers || !member.CanInviteUsers || !member.CanDeleteMessages {
 		//fmt.Printf("Rights: %+v", member.Rights)
-		bot.Send(user, fmt.Sprintf("I do not have the necessary privileges in %s.", groupUsername))
+		bot.Send(user, fmt.Sprintf("عذرا، ليست لدي الصلاحيات الكافية في هذه المجموعة %s", groupUsername))
 		return
 	}
 
 	// Start the verification process
-	verificationMessage := fmt.Sprintf("جار التحقق من دخولك إلى مجموعة 🔍: [%s](https://t.me/%s)", groupChat.Title, groupChat.Username)
+	verificationMessage := fmt.Sprintf("جار التحقق من دخولك إلى مجموعة 🔍:\n[%s](https://t.me/%s)", groupChat.Title, groupChat.Username)
 	bot.Send(user, verificationMessage, &tb.SendOptions{ParseMode: tb.ModeMarkdownV2, DisableWebPagePreview: true})
-	bot.Send(user, "يرجى حل المسألة التالية خلال 15 ثانية.")
+	bot.Send(user, fmt.Sprintf("يرجى حل المسألة التالية خلال %v ثانية.", MATH_TIMEOUT))
 	// give user O2
 	time.Sleep(1 * time.Second)
 	// start the quiz
 	if askMathProblem(bot, user) {
-		bot.Send(user, "إجابة صحيحة! يمكنك الآن الانضمام إلى المجموعة.")
+		// Create the inline button for verification
+		markup := bot.NewMarkup()
+		btn := markup.URL("الرجوع للمجموعة", "https://t.me/"+groupChat.Username)
+		markup.Inline(markup.Row(btn))
+		bot.Send(user, "إجابة صحيحة! يمكنك الآن الانضمام 🎉", btn)
+
 		// Remove restrictions
 		err = bot.Promote(groupChat, &tb.ChatMember{
 			User: user,
@@ -162,7 +167,7 @@ func handleStartCommand(bot *tb.Bot, c tb.Context, groupUsername string) {
 		}
 		welcomeUserToGroup(bot, groupChat, user)
 	} else {
-		bot.Send(user, "إجابة غير صحيحة! سيتم رفض طلبك للانضمام.")
+		bot.Send(user, "إجابة غير صحيحة! طلبك للانضمام مرفوض.")
 		// Kick the user without banning
 		err = bot.Unban(groupChat, user) // The third parameter defaults to false
 		if err != nil {
@@ -222,15 +227,15 @@ func askMathProblem(bot *tb.Bot, user *tb.User) bool {
 		}
 		return false
 	case <-time.After((MATH_TIMEOUT + 4) * time.Second):
-		bot.Send(user, "انتهى الوقت! سيتم رفض طلبك للانضمام.")
+		bot.Send(user, "انتهت المُهلة! طلبك للانضمام مرفوض.")
 		return false
 	}
 }
 
 // welcomeUserToGroup sends a welcome message to the group.
 func welcomeUserToGroup(bot *tb.Bot, chat *tb.Chat, user *tb.User) {
-	welcomeMessage := fmt.Sprintf("سادتي وسيداتي رحبوا معنا بالوافد الجديد [%s](https://t.me/%s) لقد تم قبوله معنا 🤠🍉🎉", user.FirstName+" "+user.LastName, user.Username)
-	_, err := bot.Send(chat, welcomeMessage, &tb.SendOptions{ParseMode: tb.ModeMarkdownV2, DisableWebPagePreview: true})
+	welcomeMessage := fmt.Sprintf("أهلا بك معنا @%s 🍉🎉", user.Username)
+	_, err := bot.Send(chat, welcomeMessage)
 	if err != nil {
 		log.Println("Error sending welcoming markdown: ", err)
 	}
