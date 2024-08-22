@@ -1,5 +1,8 @@
 # Telegram Gatekeeper Bot
 
+> [!NOTE]  
+> If you're an Arabic speaker, please visit the [Arabic documentation](/README.Arabic.md).
+
 This is a Telegram bot built using Go, designed to serve as a gatekeeper for group chats. The bot ensures that only valid users can join by requiring them to choose the correct option or solve a math problem within a limited time.
 
 ![Bot Icon](assets/gatekeeper_bot_icon.jpg)
