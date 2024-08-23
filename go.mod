@@ -1,4 +1,4 @@
-module zakaria.telegram.bot
+module saalim_gatekeeper
 
 go 1.21.2
 
